@@ -23,19 +23,21 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Assert;
-
+import org.eclipse.californium.category.Small;
 import org.eclipse.californium.core.coap.Option;
 import org.eclipse.californium.core.coap.OptionSet;
 import org.eclipse.californium.core.coap.OptionNumberRegistry;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 
 /**
  * This test tests the class Option. We test that the conversion of String,
  * integer and long values to byte arrays work properly.
  */
+@Category(Small.class)
 public class OptionTest {
 
 	@Before
