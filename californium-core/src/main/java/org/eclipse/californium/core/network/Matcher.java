@@ -36,6 +36,8 @@ import java.util.logging.Logger;
 import org.eclipse.californium.core.coap.CoAP.Type;
 import org.eclipse.californium.core.coap.EmptyMessage;
 import org.eclipse.californium.core.coap.Message;
+import org.eclipse.californium.core.coap.MessageObserver;
+import org.eclipse.californium.core.coap.MessageObserverAdapter;
 import org.eclipse.californium.core.coap.Request;
 import org.eclipse.californium.core.coap.Response;
 import org.eclipse.californium.core.network.Exchange.KeyMID;
@@ -45,9 +47,12 @@ import org.eclipse.californium.core.network.Exchange.Origin;
 import org.eclipse.californium.core.network.config.NetworkConfig;
 import org.eclipse.californium.core.network.deduplication.Deduplicator;
 import org.eclipse.californium.core.network.deduplication.DeduplicatorFactory;
+import org.eclipse.californium.core.observe.InMemoryObserveRequestStore;
+import org.eclipse.californium.core.observe.NotificationListener;
 import org.eclipse.californium.core.observe.ObserveRelation;
-import org.eclipse.californium.elements.DtlsCorrelationContext;
+import org.eclipse.californium.core.observe.ObserveRequestStore;
 import org.eclipse.californium.elements.CorrelationContext;
+import org.eclipse.californium.elements.DtlsCorrelationContext;
 
 public class Matcher {
 
@@ -79,8 +84,17 @@ public class Matcher {
 
 	private boolean useStrictResponseMatching = false;
 
-	public Matcher(NetworkConfig config) {
+	private NotificationListener notificationListener;
+	private ObserveRequestStore observeRequestStore;
+	
+	public Matcher(NetworkConfig config){
+		this(config, null, new InMemoryObserveRequestStore());
+	}	
+
+	public Matcher(NetworkConfig config, NotificationListener notificationListener,ObserveRequestStore observeRequestStore) {
 		this.started = false;
+		this.notificationListener = notificationListener;
+		this.observeRequestStore = observeRequestStore;
 		this.exchangesByMID = new ConcurrentHashMap<KeyMID, Exchange>();
 		this.exchangesByToken = new ConcurrentHashMap<KeyToken, Exchange>();
 		this.ongoingExchanges = new ConcurrentHashMap<KeyUri, Exchange>();
@@ -146,7 +160,7 @@ public class Matcher {
 		// health status runnable is not migrated at the moment
 	}
 
-	public void sendRequest(Exchange exchange, Request request) {
+	public void sendRequest(Exchange exchange,final  Request request) {
 
 		// ensure MID is set
 		if (request.getMID() == Message.NONE) {
@@ -166,6 +180,15 @@ public class Matcher {
 			if (!(exchange.getFailedTransmissionCount()>0 || request.getOptions().hasBlock1() || request.getOptions().hasBlock2() || request.getOptions().hasObserve()) && exchangesByToken.get(idByToken) != null) {
 				LOGGER.log(Level.WARNING, "Manual token overrides existing open request: {0}", idByToken);
 			}
+		}
+
+		if (!request.getOptions().hasBlock2() && request.getOptions().hasObserve() && request.getOptions().getObserve() == 0) {
+			request.addMessageObserver(new MessageObserverAdapter() {
+				@Override
+				public void onResponse(Response response) {
+					observeRequestStore.add(request);
+				}
+			});
 		}
 
 		exchange.setObserver(exchangeObserver);
@@ -343,6 +366,50 @@ public class Matcher {
 		KeyToken idByToken = new KeyToken(response.getToken());
 
 		Exchange exchange = exchangesByToken.get(idByToken);
+		if (exchange == null && observeRequestStore != null ) {
+			final Request request = observeRequestStore.get(response);
+			if (request != null){
+				request.setDestination(response.getSource());
+				request.setDestinationPort(response.getSourcePort());
+				exchange = new Exchange(request, Origin.LOCAL);
+				exchange.setRequest(request);
+				exchange.setObserver(exchangeObserver);
+				request.addMessageObserver(new MessageObserver() {
+					@Override
+					public void onTimeout() {
+						notificationListener.onTimeout(request);
+						observeRequestStore.remove(request);
+					}
+
+					@Override
+					public void onRetransmission() {
+						notificationListener.onRetransmission(request);
+					}
+
+					@Override
+					public void onResponse(Response response) {
+						notificationListener.onResponse(request, response);
+					}
+
+					@Override
+					public void onReject() {
+						notificationListener.onReject(request);
+						observeRequestStore.remove(request);
+					}
+
+					@Override
+					public void onCancel() {
+						notificationListener.onCancel(request);
+						observeRequestStore.remove(request);
+					}
+
+					@Override
+					public void onAcknowledgement() {
+						notificationListener.onCancel(request);
+					}
+				});
+			}
+		}
 
 		if (exchange == null) {
 			// There is no exchange with the given token.

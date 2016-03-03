@@ -50,6 +50,8 @@ import org.eclipse.californium.core.network.stack.BlockwiseLayer;
 import org.eclipse.californium.core.network.stack.CoapStack;
 import org.eclipse.californium.core.network.stack.ObserveLayer;
 import org.eclipse.californium.core.network.stack.ReliabilityLayer;
+import org.eclipse.californium.core.observe.NotificationListener;
+import org.eclipse.californium.core.observe.ObserveRequestStore;
 import org.eclipse.californium.core.server.MessageDeliverer;
 import org.eclipse.californium.elements.Connector;
 import org.eclipse.californium.elements.MessageCallback;
@@ -202,9 +204,18 @@ public class CoapEndpoint implements Endpoint {
 	 * @param config the config
 	 */
 	public CoapEndpoint(Connector connector, NetworkConfig config) {
+		this(connector,config, null, null);
+	}
+
+	public CoapEndpoint(InetSocketAddress address, NetworkConfig config, NotificationListener notificationListener,
+			ObserveRequestStore store) {
+		this(createUDPConnector(address, config), config, notificationListener, store);
+	}
+
+	public CoapEndpoint(Connector connector, NetworkConfig config,NotificationListener notificationListener, ObserveRequestStore store) {
 		this.config = config;
 		this.connector = connector;
-		this.matcher = new Matcher(config);		
+		this.matcher = new Matcher(config, notificationListener, store);
 		this.coapstack = new CoapStack(config, new OutboxImpl());
 		this.connector.setRawDataReceiver(new InboxImpl());
 	}
