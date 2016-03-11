@@ -334,14 +334,14 @@ public class Option implements Comparable<Option> {
 	 * @return the option value as string
 	 */
 	public String toValueString() {
-		switch (number.getFormat()) {
-		case INTEGER:
+		if (number.getTargetClass().isAssignableFrom(int.class)
+		        || number.getTargetClass().isAssignableFrom(long.class)) {
 			if (number==OptionNumberRegistry.ACCEPT || number==OptionNumberRegistry.CONTENT_FORMAT) return "\""+MediaTypeRegistry.toString(getIntegerValue())+"\"";
 			else if (number==OptionNumberRegistry.BLOCK1 || number==OptionNumberRegistry.BLOCK2) return "\""+ new BlockOption(value) +"\"";
 			else return Integer.toString(getIntegerValue());
-		case STRING:
+		} else if (number.getTargetClass().isAssignableFrom(String.class)) {
 			return "\""+this.getStringValue()+"\"";
-		default:
+		} else {
 			return toHexString(this.getValue());
 		}
 	}

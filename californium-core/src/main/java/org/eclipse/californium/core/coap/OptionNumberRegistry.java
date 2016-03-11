@@ -27,25 +27,25 @@ import java.util.TreeMap;
  * Section 12.2 and other CoAP extensions.
  */
 public enum OptionNumberRegistry {
-    IF_MATCH(       1, true,  false, optionFormats.OPAQUE,  "If-Match"), 
-    URI_HOST(       3, false, true,  optionFormats.STRING,  "Uri-Host"), 
-    ETAG(           4, true,  false, optionFormats.OPAQUE,  "ETag"), 
-    IF_NONE_MATCH(  5, false, false, optionFormats.INTEGER, "If-None-Match"), 
-    OBSERVE(        6, false, false, optionFormats.INTEGER, "Observe"), 
-    URI_PORT(       7, false, true,  optionFormats.INTEGER, "Uri-Port"), 
-    LOCATION_PATH(  8, true,  false, optionFormats.STRING,  "Location-Path"), 
-    URI_PATH(      11, true,  true,  optionFormats.STRING,  "Uri-Path"), 
-    CONTENT_FORMAT(12, false, false, optionFormats.INTEGER, "Content-Format"), 
-    MAX_AGE(       14, false, false, optionFormats.INTEGER, "Max-Age"), 
-    URI_QUERY(     15, true,  true,  optionFormats.STRING,  "Uri-Query"),
-    ACCEPT(        17, false, false, optionFormats.INTEGER, "Accept"),
-    LOCATION_QUERY(20, true,  false, optionFormats.STRING,  "Location-Query"),
-    BLOCK2(        23, false, false, optionFormats.INTEGER, "Block2"),
-    BLOCK1(        27, false, false, optionFormats.INTEGER, "Block1"),
-    SIZE2(         28, false, false, optionFormats.INTEGER, "Size2"),
-    PROXY_URI(     35, false, false, optionFormats.STRING,  "Proxy-Uri"),
-    PROXY_SCHEME(  39, false, false, optionFormats.STRING,  "Proxy-Scheme"),
-    SIZE1(         60, false, false, optionFormats.INTEGER, "Size1"),
+    IF_MATCH(       1, true,  false, byte[].class,  "If-Match"), 
+    URI_HOST(       3, false, true,  String.class,  "Uri-Host"), 
+    ETAG(           4, true,  false, byte[].class,  "ETag"), 
+    IF_NONE_MATCH(  5, false, false, boolean.class, "If-None-Match"), 
+    OBSERVE(        6, false, false, int.class, "Observe"), 
+    URI_PORT(       7, false, true,  int.class, "Uri-Port"), 
+    LOCATION_PATH(  8, true,  false, String.class,  "Location-Path"), 
+    URI_PATH(      11, true,  true,  String.class,  "Uri-Path"), 
+    CONTENT_FORMAT(12, false, false, int.class, "Content-Format"), 
+    MAX_AGE(       14, false, false, long.class, "Max-Age"), 
+    URI_QUERY(     15, true,  true,  String.class,  "Uri-Query"),
+    ACCEPT(        17, false, false, int.class, "Accept"),
+    LOCATION_QUERY(20, true,  false, String.class,  "Location-Query"),
+    BLOCK2(        23, false, false, int.class, "Block2"),
+    BLOCK1(        27, false, false, int.class, "Block1"),
+    SIZE2(         28, false, false, int.class, "Size2"),
+    PROXY_URI(     35, false, false, String.class,  "Proxy-Uri"),
+    PROXY_SCHEME(  39, false, false, String.class,  "Proxy-Scheme"),
+    SIZE1(         60, false, false, int.class, "Size1"),
     ;
 
     private static Map<String, OptionNumberRegistry> m_mapByName;
@@ -55,20 +55,20 @@ public enum OptionNumberRegistry {
     private boolean m_repeatable;
     private boolean m_uriPart;
     private String m_name;
-    private optionFormats m_format;
+    private Class<?> m_targetClass;
 
     OptionNumberRegistry(
             int protocolValue,
             boolean isRepeatable,
             boolean isUriPart,
-            optionFormats format,
+            Class<?> targetClass,
             String name)
     {
         m_protocolValue = protocolValue;
         m_repeatable = isRepeatable;
         m_uriPart = isUriPart;
         m_name = name;
-        m_format = format;
+        m_targetClass = targetClass;
     }
 
     
@@ -82,19 +82,12 @@ public enum OptionNumberRegistry {
     }
 
     /**
-     * The format types of CoAP options.
-     */
-    public static enum optionFormats {
-        INTEGER, STRING, OPAQUE, UNKNOWN
-    }
-
-    /**
      * Returns the option format based on the option number.
      * 
      * @return The option format corresponding to the option number
      */
-    public optionFormats getFormat() {
-        return m_format;
+    public Class<?> getTargetClass() {
+        return m_targetClass;
     }
     
     /**
