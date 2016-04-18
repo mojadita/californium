@@ -1,79 +1,43 @@
-**/bin/*
-bin/
-/doc/*
-run/
-test_out/
-tmp/
-.directory
-.gradle
-.loadpath
-.metadata
-*.pydevproject
-*.bak
-*.swp
-*.tmp
-*~.nib
-local.properties
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
 
-# Maven #
-#########
-log/
-target/
+# Folder config file
+Desktop.ini
 
-# Eclipse #
-###########
-.project
-.classpath
-.settings/
-.externalToolBuilders/
-*.launch
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
 
-# Intellij #
-############
-.idea/
-*.iml
-*.ipr
-*.iws
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
 
-# Compiled source #
-###################
-*.class
-*.com
-*.dll
-*.exe
-*.o
-*.so
+# Windows shortcuts
+*.lnk
 
-# Packages #
-############
-# it's better to unpack these files and commit the raw source
-# git has its own built in compression methods
-*.7z
-*.dmg
-*.gz
-*.iso
-*.jar
-*.rar
-*.tar
-*.zip
+# =========================
+# Operating System Files
+# =========================
 
-# Logs and databases #
-######################
-Californium.properties
-*.log
-*.sql
-*.sqlite
+# OSX
+# =========================
 
-# OS generated files #
-######################
-._*
-.AppleDouble
 .DS_Store
-.DS_Store?
+.AppleDouble
 .LSOverride
+
+# Thumbnails
+._*
+
+# Files that might appear on external disk
 .Spotlight-V100
 .Trashes
-Icon?
-ehthumbs.db
-Thumbs.db
-Desktop.ini
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
